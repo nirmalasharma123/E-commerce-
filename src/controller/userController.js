@@ -3,7 +3,7 @@ const { uploadFile } = require("../controller/aws")
 const bcrypt = require('bcrypt')
 const validator=require("validator")
 const jwt = require('jsonwebtoken')
-const {userJoi} = require('../validation/validation')
+const {userJoi,userUpdateValidation} = require('../validation/validation')
 const authentication=require("../middleware/midleware")
 
 const createUser = async (req, res) => {
@@ -63,7 +63,7 @@ const login = async (req, res) => {
 const  getUserbyId= async function (req,res){
     try{
     let userId=req.params.userId;
-    if(!validator.isMongoId(userId)) return res.status(400).send({status:false,message:"please provide valid user id"});
+    if(validator.isMongoId(userId)==0) return res.status(400).send({status:false,message:"please provide valid user id"});
 
 
     ////autherization=====
@@ -84,20 +84,29 @@ const updateUser=async function(req,res){
     let userId=req.params.userId;
 
 ////   autherization
- ///if(req.token!=userId) return res.status(400).send({status:false,message:"you are not autherize for this"})
+ //if(req.token!=userId) return res.status(400).send({status:false,message:"you are not autherize for this"})
  let data=req.body;
+ if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"please provide valid user id"});
  
- data.address=JSON.parse(data.address);
- ////////upload imag////
- let files = req.files
-        if (files && files.length > 0) {
+ try {
+            
+    const value = await userUpdateValidation.validateAsync(data);
+}
+catch (err) { return res.status(400).send({ status: false, message: err.message }) }
+
+ ////////upload imag///
+  
+            let files = req.files
+           if (files && files.length > 0) {
             let uploadUrl = await uploadFile(files[0])
             data.profileImage = uploadUrl
         }
+    
 /////password//
-
-let hashPassword = await bcrypt.hash(data.password, data.password.length)
+if(data.password){
+    let hashPassword = await bcrypt.hash(data.password, data.password.length)
         data.password = hashPassword
+}
 
 if(data.email){
     let findDuplicateOne = await userModel.findOne({email:data.email});
@@ -110,6 +119,27 @@ if(data.phone){
     
 }
 
+if(data.address){
+    data.address=JSON.parse(data.address);
+    let address=data.address;
+    if(address.shipping){
+        let{street,city,pincode}=address.shipping
+
+        if(street)   address.shipping.street=street
+        if(city) address.shipping.city=city
+        if(pincode) address.shipping.pincode=pincode
+
+    }
+    if(address.billing){
+        let{street,city,pincode}=address.billing
+
+        if(street)  address.billing.street=street
+        if(city) address.billing.city=city
+        if(pincode) address.billing.pincode=pincode
+
+    }
+     data.address=address
+}
 
  let findUser=await userModel.findOneAndUpdate({_id:userId},data,{new:true});
  if(!findUser) return res.status(404).send({status:false,message:"no user found"});
