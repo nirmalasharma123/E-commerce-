@@ -4,8 +4,9 @@ const validator = require("validator")
 
 const createProduct = async function (req, res) {
     try {
-        if (!Object.keys(req.body).length) return res.status(400).send({ status: false, message: "please provide detail for products" });
         let data = req.body;
+        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "please provide detail for products" });
+
         let files = req.files
         if (files && files.length > 0) {
             let uploadUrl = await uploadFile(files[0])
