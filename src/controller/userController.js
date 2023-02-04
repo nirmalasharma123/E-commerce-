@@ -90,8 +90,9 @@ const updateUser=async function(req,res){
 ////   autherization
  //if(req.token!=userId) return res.status(400).send({status:false,message:"you are not autherize for this"})
  let data=req.body;
- if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"please provide valid user id"});
- 
+ if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"Please provide Data"});
+ if(validator.isMongoId(userId)==0) return res.status(400).send({status:false,message:"Please provide valid user id"});
+
  try {
             
     const value = await userUpdateValidation.validateAsync(data);
