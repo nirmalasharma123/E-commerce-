@@ -136,7 +136,7 @@ const deletProduct=async function(req,res){
 
     if(!validator.isMongoId(productId)) return res.status(400).send({status:false,message:"please provide valid id"});
 
-    let  findProduct =await productModel.findOne({_Id:productId,isDeleted:false});
+    let  findProduct =await productModel.findOne({_id:productId,isDeleted:false});
     if(!findProduct) return res.status(404).send({ status: false, message: "no product found" });
 
     let findAndUpdate=await productModel.findOneAndUpdate({_id:productId},{isDeleted:true},{new:true});
