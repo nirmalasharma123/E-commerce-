@@ -17,7 +17,11 @@ const createUser = async (req, res) => {
             const value = await userJoi.validateAsync(data);
         }
         catch (err) { return res.status(400).send({ status: false, message: err.message }) }
-       
+
+        /* ------------Unique email and phone--------- */
+        let check = await userModel.findOne({$or:[{email:data.email},{phone:data.phone}]})
+        if(check) return res.status(400).send({status:false,message:"Email or Phone already present"})
+
         /* ------------uplaod to AWS---------- */
         let files = req.files
         if (files && files.length > 0) {
