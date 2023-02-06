@@ -7,6 +7,7 @@ const createProduct = async function (req, res) {
         if (!Object.keys(req.body).length) return res.status(400).send({ status: false, message: "please provide detail for products" });
         let data = req.body;
         let files = req.files
+        
         if (files && files.length > 0) {
             let uploadUrl = await uploadFile(files[0])
             data.productImage = uploadUrl
