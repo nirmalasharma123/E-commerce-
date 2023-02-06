@@ -17,7 +17,11 @@ const createUser = async (req, res) => {
             const value = await userJoi.validateAsync(data);
         }
         catch (err) { return res.status(400).send({ status: false, message: err.message }) }
-       
+
+        /* ------------Unique email and phone--------- */
+        let check = await userModel.findOne({$or:[{email:data.email},{phone:data.phone}]})
+        if(check) return res.status(400).send({status:false,message:"Email or Phone already present"})
+
         /* ------------uplaod to AWS---------- */
         let files = req.files
         if (files && files.length > 0) {
@@ -86,8 +90,9 @@ const updateUser=async function(req,res){
 ////   autherization
  //if(req.token!=userId) return res.status(400).send({status:false,message:"you are not autherize for this"})
  let data=req.body;
- if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"please provide valid user id"});
- 
+ if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"Please provide Data"});
+ if(validator.isMongoId(userId)==0) return res.status(400).send({status:false,message:"Please provide valid user id"});
+
  try {
             
     const value = await userUpdateValidation.validateAsync(data);

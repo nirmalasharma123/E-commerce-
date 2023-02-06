@@ -4,8 +4,9 @@ const validator = require("validator")
 
 const createProduct = async function (req, res) {
     try {
-        if (!Object.keys(req.body).length) return res.status(400).send({ status: false, message: "please provide detail for products" });
         let data = req.body;
+        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "please provide detail for products" });
+
         let files = req.files
         
         if (files && files.length > 0) {
@@ -136,7 +137,7 @@ const deletProduct=async function(req,res){
 
     if(!validator.isMongoId(productId)) return res.status(400).send({status:false,message:"please provide valid id"});
 
-    let  findProduct =await productModel.findOne({_Id:productId,isDeleted:false});
+    let  findProduct =await productModel.findOne({_id:productId,isDeleted:false});
     if(!findProduct) return res.status(404).send({ status: false, message: "no product found" });
 
     let findAndUpdate=await productModel.findOneAndUpdate({_id:productId},{isDeleted:true},{new:true});
