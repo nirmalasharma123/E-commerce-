@@ -131,6 +131,21 @@ const UpdateProducts = async function (req, res) {
     }
 
 };
+let getProductById= async function(req,res){
+
+    try{
+    let productId=req.params;
+    if(!validator.isMongoId(productId)) return res.status(400).send({status:false,message:"invalid product id"});
+
+    let findprodct= await productModel.findOne({_id:productId});
+    if(!findprodct) return re.status(404).send({status:false,message:"product not found"});
+    if(findprodct.isDeleted==true) return res.status(400).send({status:false,message:"product is already deleted "})
+
+    return res.status(200).send({status:false,message:"product found",data:findprodct})}
+    catch(err){
+        return res.status(500).send({status:false,message:err.message})
+    }
+}
 
 const deletProduct=async function(req,res){
     let productId=req.params.productId;
@@ -140,7 +155,7 @@ const deletProduct=async function(req,res){
     let  findProduct =await productModel.findOne({_id:productId,isDeleted:false});
     if(!findProduct) return res.status(404).send({ status: false, message: "no product found" });
 
-    let findAndUpdate=await productModel.findOneAndUpdate({_id:productId},{isDeleted:true},{new:true});
+    let findAndUpdate=await productModel.findOneAndUpdate({_id:productId},{isDeleted:true,deletedAt:Date.now()},{new:true});
      return res.status(200).send({status:false,message:"product deleted sucessfully"})
 
 }
