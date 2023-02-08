@@ -39,49 +39,35 @@ const createProduct = async function (req, res) {
 
 const getProducts = async function (req, res) {
     try {
+        let data = req.query
+        let filter = { isDeleted: false }
 
-        let data = req.query;
-        if(Object.keys(data).length==0){
-            let findProduct = await productModel.find({isDeleted:false});
-                        
-           return res.status(200).send({ status: true, message: "product data", data: findProduct })
-     }
-      let filter={isDeleted:false}
-
-    if(data.priceGreaterThan && data.priceLessThan===undefined ){
-        filter.price={ $gte: data.priceGreaterThan}
-   };
-
-    if (data.priceGreaterThan && data.priceLessThan){
-             filter.price={ $gte: data.priceGreaterThan, $lte: data.priceLessThan }
+        /* ------If size is present---------*/
+        if (data.size) {
+            filter.availableSizes = data.size
+        }
+        /* ------if name is present-------- */
+        if (data.name) {
+            let regex = new RegExp(data.name, 'g')
+            filter.title = regex
+        }
+        /* -------if price is present------ */
+        if (data.priceGreaterThan && data.priceLessThan === undefined) {
+            filter.price = { $gt: data.priceGreaterThan }
         };
 
-    if(data.priceLessThan && data.priceGreaterThan ==undefined ){
-            filter.price={ $lte: data.priceLessThan }
-       };
-    if(data.priceSort!= -1 || data.priceSort!= 1)  return res.status(400).send({status:false,message:"please put the sorting value 1 or -1"});
-   /// if(!data.priceSort) {data.priceSort = 1}
+        if (data.priceGreaterThan && data.priceLessThan) {
+            filter.price = { $gt: data.priceGreaterThan, $lt: data.priceLessThan }
+        };
 
-        
-    
-    //     data.availableSizes = data.size;
-    //     let regex = new RegExp(data.name, 'g')
-    //     let { size, priceSort, priceGreaterThan, priceLessThan } = data;
-    //     let filter = {
-    //         isDeleted: false,
-    //         availableSizes: size,
-    //         title: regex,
-    //         price: { $gte: priceGreaterThan, $lte: priceLessThan }
-    //     };
+        if (data.priceLessThan && data.priceGreaterThan == undefined) {
+            filter.price = { $lt: data.priceLessThan }
+        };
 
-        //let findProduct = await productModel.find({$or:[{availableSizes:size},{title:regex}]}).sort({ price: priceSort });
-      let findProduct = await productModel.find(filter).sort({price:data.priceSort})
-    //  console.log("2")
-        return res.status(200).send({ status: true, message: "product data", data: findProduct })
+        /* --------Business Logic -------- */
+        let result = await productModel.find(filter).sort({ price: data.priceSort })
+        return res.status(200).send({ status: true,message:"Success", data: {result} })
 
-
-    // 
-    }
     catch (error) {
         return res.status(500).send({ status: false, message: error.message })
 
