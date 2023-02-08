@@ -3,7 +3,7 @@ const { uploadFile } = require("../controller/aws")
 const bcrypt = require('bcrypt')
 const validator=require("validator")
 const jwt = require('jsonwebtoken')
-const {userJoi,userUpdateValidation} = require('../validation/validation')
+const valid = require('../validation/validation')
 const authentication=require("../middleware/midleware")
 
 const createUser = async (req, res) => {
@@ -47,11 +47,12 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        let data = req.body
-        console.log(data)
+        let data = req.body;
+        if(!data.email) return res.status(400).send({status:false,message:"please provide email"});
+        if(!data.password) return res.status(400).send({status:false,message:"please provide password"})
         let { email, password } = data
         /* ------------- Validation----------*/
-        let findEmail = await userModel.findOne({ email: email })
+        let findEmail = await userModel.findOne({ email: email });
         if (!findEmail) { return res.status(400).send({ status: false, message: "Please Provide valid Email" }) }
         let checkPassword = await bcrypt.compare(password, findEmail.password)
         if (!checkPassword) { return res.status(400).send({ status: false, message: "Please Provide valid Password" }) }
@@ -67,7 +68,7 @@ const login = async (req, res) => {
 const  getUserbyId= async function (req,res){
     try{
     let userId=req.params.userId;
-    if(validator.isMongoId(userId)==0) return res.status(400).send({status:false,message:"please provide valid user id"});
+    if(!validator.isMongoId(userId)) return res.status(400).send({status:false,message:"please provide valid user id"});
 
 
     ////autherization=====
@@ -86,19 +87,35 @@ const  getUserbyId= async function (req,res){
 const updateUser=async function(req,res){
    try{
     let userId=req.params.userId;
+    if(!validator.isMongoId(userId)) return res.status(400).send({status:false,message:"please provide valid user id"})
 
-////   autherization
- //if(req.token!=userId) return res.status(400).send({status:false,message:"you are not autherize for this"})
+    let findUserdata = await userModel.findOne({_id:userId})
+
  let data=req.body;
  if(Object.keys(data).length==0) return res.status(400).send({status:false,message:"Please provide Data"});
- if(validator.isMongoId(userId)==0) return res.status(400).send({status:false,message:"Please provide valid user id"});
+ 
+ if(data.fname){
+    if(!validator.isAlpha(data.fname)) return res.status(400).send({status:false,message:"please provide valid name"})
+ }
+ if(data.lname){
+    if(!validator.isAlpha(data.lname)) return res.status(400).send({status:false,message:"please provide valid  last name"})
 
- try {
-            
-    const value = await userUpdateValidation.validateAsync(data);
-}
-catch (err) { return res.status(400).send({ status: false, message: err.message }) }
-
+ }
+ if(data.email){
+     let findDuplicateOne = await userModel.findOne({$or:[{email:data.email,phone:data.phone}]});
+     if(findDuplicateOne.email) return res.status(400).send({status:false,message:"email already present"});
+     
+ };
+ if(data.phone){
+     if(findDuplicateOne.phone) return res.status(400).send({status:false,message:"phone already present"});
+     
+ }
+ if(data.password){
+    if(!valid.isValidPassword(password)) return res.status(400).send({status:false,message:"please provide valid password-"})
+     let hashPassword = await bcrypt.hash(data.password, data.password.length)
+         data.password = hashPassword
+ }
+ 
  ////////upload imag///
   
             let files = req.files
@@ -107,43 +124,37 @@ catch (err) { return res.status(400).send({ status: false, message: err.message 
             data.profileImage = uploadUrl
         }
     
-/////password//
-if(data.password){
-    let hashPassword = await bcrypt.hash(data.password, data.password.length)
-        data.password = hashPassword
-}
-
-if(data.email){
-    let findDuplicateOne = await userModel.findOne({email:data.email});
-    if(findDuplicateOne) return res.status(400).send({status:false,message:"email already present"});
-    
-};
-if(data.phone){
-    let findDuplicatePhone = await userModel.findOne({phone:data.phone});
-    if(findDuplicatePhone) return res.status(400).send({status:false,message:"phone already present"});
-    
-}
 
 if(data.address){
     data.address=JSON.parse(data.address);
-    let address=data.address;
-    if(address.shipping){
-        let{street,city,pincode}=address.shipping
+    if(data.address.shipping){
+        let {street,pincode,city}= data.address.shipping;
 
-        if(street)   address.shipping.street=street
-        if(city) address.shipping.city=city
-        if(pincode) address.shipping.pincode=pincode
-
+        if(street){
+            data.shipping.street=street
+        }
+        if(city){
+            data.shipping.city=city
+        }
+        if(pincode){
+            data.shipping.pincode=pincode
+        }
     }
-    if(address.billing){
-        let{street,city,pincode}=address.billing
+    if(data.address.billing){
+        let {street,pincode,city}= data.address.billing;
 
-        if(street)  address.billing.street=street
-        if(city) address.billing.city=city
-        if(pincode) address.billing.pincode=pincode
-
+        if(street){
+            data.billing.street=street
+        }
+        if(city){
+            data.billing.city=city
+        }
+        if(pincode){
+            data.billing.pincode=pincode
+        }
     }
-     data.address=address
+   data.address= data.address
+    
 }
 
  let findUser=await userModel.findOneAndUpdate({_id:userId},data,{new:true});

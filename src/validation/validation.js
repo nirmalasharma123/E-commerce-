@@ -1,56 +1,29 @@
-const Joi = require('joi');
 
-/* -------------User register--------- */
-const userJoi = Joi.object({
-    fname: Joi.string().trim().required().regex(/^[a-zA-Z ]+$/).message("please enter valid fname"),
-    lname: Joi.string().trim().required().regex(/^[a-zA-Z ]+$/).message("please enter valid lname"),
-    email: Joi.string().email().trim().required().regex(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).message("please enter valid email"),
-    phone: Joi.string().trim().required().regex(/^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/).message("phone is not valid"),
-    password: Joi.string().trim().required().min(8).max(15).regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,15}$/).message("password  should contain Min 8 character and 1 Special Symbol"),
-    address:Joi.object({
-        shipping:Joi.object({
-             street:Joi.string().required().trim(),
-             city:Joi.string().required().regex(/^[a-zA-Z ]+$/).trim(),
-             pincode:Joi.number().required()
-
-         }),
-         billing:Joi.object({
-             street:Joi.string().required().trim(),
-             city:Joi.string().required().regex(/^[a-zA-Z ]+$/).trim(),
-             pincode:Joi.number().required()
-         })
-     })
-
-
-});
-
-const userUpdateValidation=Joi.object({
-    fname: Joi.string().trim().regex(/^[a-zA-Z ]+$/).message("please enter valid fname"),
-    lname: Joi.string().trim().regex(/^[a-zA-Z ]+$/).message("please enter valid lname"),
-    email: Joi.string().email().trim().regex(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).message("please enter valid email"),
-    phone: Joi.string().trim().regex(/^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/).message("phone is not valid"),
-    password: Joi.string().trim().min(8).max(15).regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,15}$/).message("password  should contain Min 8 character and 1 Special Symbol"),
-    address:Joi.object({
-        shipping:Joi.object({
-             street:Joi.string().required().trim(),
-             city:Joi.string().required().regex(/^[a-zA-Z ]+$/).trim(),
-             pincode:Joi.number().required()
-
-         }),
-         billing:Joi.object({
-             street:Joi.string().trim(),
-             city:Joi.string().regex(/^[a-zA-Z ]+$/).trim(),
-             pincode:Joi.number()
-         })
-     })
-
-
-     
-});
-
-///const productValidation=Jio.object({
-
-   /// title:Joi.string().required.trim().unique()
-
-////})
-module.exports = { userJoi,userUpdateValidation }  
+const isValid = function(value) { 
+    if (typeof value == 'undefined' || value == null) return false;
+    if (typeof value == 'string' && value.trim().length === 0) return false;
+    return true;
+  }
+  
+  
+  const isValidMobile = function (name) {
+      const validName = /^[6-9]{1}[0-9]{9}$/;
+      return validName.test(name);
+    };
+    const isValidPassword = (value) => {
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*#?&]{8,15}$/  
+      return passRegex.test(value)
+  };
+  const isValidCity = function(value){
+      const city= (/^[A-Z a-z]+$/);
+      return city.test(value)
+      }
+  
+  const isValidPin = function(value){
+      return (/^[1-9][0-9]{5}$/).test(value)
+      }
+  
+  
+  
+  
+    module.exports={isValidMobile,isValidPassword,isValidPin,isValid,isValidPin}
