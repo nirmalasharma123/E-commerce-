@@ -22,8 +22,11 @@ const isValid = function(value) {
   const isValidPin = function(value){
       return (/^[1-9][0-9]{5}$/).test(value)
       }
+  const isValidPrice = function(value){
+        return (/^(?:\d*\.\d{1,2}|\d+)$/).test(value)
+      }
   
   
   
   
-    module.exports={isValidMobile,isValidPassword,isValidPin,isValid,isValidPin}
+    module.exports={isValidMobile,isValidPassword,isValidPin,isValid,isValidPin,isValidCity,isValidPrice}

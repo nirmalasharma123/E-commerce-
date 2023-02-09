@@ -15,7 +15,7 @@ const creatCart = async function (req, res) {
     if (!data.productId) return res.status(400).send({ status: false, message: "please provide productId" })
 
     let findProduct = await productModel.findOne({ _id: data.productId, isDeleted: false });
-    if (!findProduct) return res.status(400).send({ status: false, message: "Given product Id is Out of stock or not avilable." });
+    if (!findProduct) return res.status(400).send({ status: false, message: "Given product Id is Out of stock or not available." });
 
     let findCart = await cartModel.findOne({ userId: userId }).lean();
     if (!findCart) {
@@ -26,7 +26,7 @@ const creatCart = async function (req, res) {
       let creatCart = await cartModel.create(data);
       return res.status(201).send({ status: true, message: "cart is created sucessfully", data: creatCart })
     }
-    if (findCart && !data.cartId) return res.status(400).send({ status: false, message: " your cart already exsist please provide cart id " });
+    if (findCart && !data.cartId) return res.status(400).send({ status: false, message: " your cart already exist please provide cart id " });
 
     let finalCartPrice = findProduct.price + findCart.totalPrice
 
@@ -37,12 +37,12 @@ const creatCart = async function (req, res) {
         oldQuant[i].quantity = index;
 
         let updateData = await cartModel.findOneAndUpdate({ _id: data.cartId }, { $set: { totalPrice: finalCartPrice, items: oldQuant } }, { new: true })
-        return res.status(201).send({ status: true, message: "Success", data: updateData })
+        return res.status(200).send({ status: true, message: "Success", data: updateData })
       }
     }
     let newOrder = { productId: data.productId, quantity: 1 }
     let updateData = await cartModel.findOneAndUpdate({ _id: data.cartId }, { $set: { totalPrice: finalCartPrice }, $push: { items: newOrder }, $inc: { totalItems: 1 } }, { new: true })
-    return res.status(201).send({ status: true, message: "Success", data: updateData })
+    return res.status(200).send({ status: true, message: "Success", data: updateData })
   } catch (error) {
     res.status(500).send({ status: false, message: error.message })
   }
@@ -61,12 +61,11 @@ const updateCart = async function (req, res) {
   if (!validator.isMongoId(data.cartId)) return res.status(400).send({ status: false, message: "please provide valid cart  id" })
 
 
-
   let findProduct = await productModel.findOne({ _id: data.productId, isDeleted: false });
   if (!findProduct) return res.status(404).send({ status: false, message: "no product found" })
 
   let findCart = await cartModel.findOne({ _id: data.cartId, isDeleted: false }).lean();
-  if(!findCart) return res.status(400).send({ status:false,message: "No cart found"})
+  if(!findCart) return res.status(404).send({ status:false,message: "No cart found"})
 
 
   if (data.removeProduct == null) return res.status(400).send({ status: false, message: "please provide details for updation" });
@@ -138,8 +137,8 @@ const deleteCart = async function (req, res) {
     findCart.totalItems = 0;
 
     let deleatCart = await cartModel.findOneAndUpdate({ userId: userId }, findCart, { new: true })
-    console.log(deleatCart)
-    return res.status(204).send({ status: true, message: "cart deleted sucessfully" })
+    
+    return res.status(204).send({ status: true, message: "cart deleted sucessfully",data:deleatCart })
   }
   catch (err) {
     return res.status(500).send({ status: false, message: err.message })
