@@ -22,7 +22,7 @@ const creatOrder=   async function(req,res){
     if(cancellable){
         if(cancellable!=true && cancellable != false) return res.status(400).send({status:false,message:"cancellable can oly be true or false"})
     }else{ cancellable=true}
- 
+
     if(status){
         status=status.trim()
         data.status="pending"
@@ -68,9 +68,9 @@ const updateOrder= async function(req,res){
      if(!data.orderId) return res.status(400).send({status:false,message:"please provide order id"});
 
      if(!data.status) return res.status(400).send({status:false,message:"Please provide status"});
-     data.status=data.status.trim();
-     if(!["pending","completed","cancelled"].includes(data.status)) return res.status(400).send({status:false,message:"status should be any of these values :- pending,completed,cancled "});
-
+    
+     data.status=data.status.trim().toLowerCase();
+     if(!["pending","completed","cancelled"].includes(data.status)) return res.status(400).send({status:false,message:"status should be any of these values :- pending,completed,cancled "})
      let findOrder= await orderModel.findOne({_id:data.orderId,userId:userId,isDeleted:false});
      if(!findOrder) return res.status(404).status({status:false,message:"order not found"});
 
@@ -79,11 +79,11 @@ const updateOrder= async function(req,res){
      }
 
      let  updateOrder = await orderModel.findOneAndUpdate({_id:data.orderId},{status:data.status},{new:true});
-     await cartModel.findOneAndUpdate({_id:cartId},{items:[],totalItems:0,totalPrice:0})
+     await cartModel.findOneAndUpdate({userId:userId},{items:[],totalItems:0,totalPrice:0})
 
      return res.status(200).send({status:true,message:"order is updated sucessfully ",data:updateOrder})
 
-      }catch(errror){
+      }catch(error){
         return res.status(500).send({status:false,message:error.message})
       }
 

@@ -6,7 +6,7 @@ const valid = require("../validation/validation");
 const createProduct = async function (req, res) {
     try {
         let data = req.body;
-        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "please provide detail for products" });
+        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, message: "please provide detail for products" });                                                                                                            
 
         if(!data. title || !valid.isValid(data.title)) return  res.status(400).send({ status: false, message: "please provide title" })
        
@@ -80,6 +80,9 @@ const getProducts = async function (req, res) {
         if (data.priceGreaterThan && data.priceLessThan === undefined) {
             filter.price = { $gt: data.priceGreaterThan }
         };
+        if(data.priceSort){
+            if(["1","-1"].indexOf(data.priceSort)<0) return res.status(400).send({status:false,message:"price should be 1 or -1"})
+        }
 
         if (data.priceGreaterThan && data.priceLessThan) {
             filter.price = { $gt: data.priceGreaterThan, $lt: data.priceLessThan }
@@ -91,7 +94,7 @@ const getProducts = async function (req, res) {
 
         /* --------Business Logic -------- */
         let result = await productModel.find(filter).sort({ price: data.priceSort })
-        return res.status(200).send({ status: true,message:"Success", data: {result} })
+        return res.status(200).send({ status: true,message:"Success", data: result })
 
     }
     catch (error) {
@@ -114,8 +117,29 @@ const UpdateProducts = async function (req, res) {
         if ((Object.keys(data).length == 0) && (!files)) return res.status(400).send({ status: false, message: "please provide details" })
         //Change title
         if (data.title) {
+            if( !valid.isValid(data.title)) return  res.status(400).send({ status: false, message: "please provide title" })
             let findTitle = await productModel.findOne({ title: data.title });
             if (findTitle) return res.status(400).send({ status: false, message: "please provide a unique title" })
+
+        }
+        if(data.description){
+            if(! data.description || !valid.isValid(data.description)) return  res.status(400).send({ status: false, message: "please provide description" })
+
+        }
+        if(data.price){
+         if(!typeof(data.price) == Number) return  res.status(400).send({ status: false, message: "please provide data.price" })
+    
+        if(!valid.isValidPrice(data.price)) return res.status(400).send({ status: false, message: "invalid price format" })
+
+        }
+        if(data.currencyId){
+            if( !valid.isValid(data.currencyId) ) return  res.status(400).send({ status: false, message: "please provide currencyId" })
+        if(data.currencyId != "INR" ) return  res.status(400).send({ status: false, message: "please provide currencyId in INR only" })
+
+        }
+        if(data.currencyFormat){
+        if(currencyFormat || !valid.isValid(data.currencyFormat)) return  res.status(400).send({ status: false, message: "please provide currency format" })
+        if(data.currencyFormat != "₹") return  res.status(400).send({ status: false, message: "please provide valid currency format" })
 
         }
         /// Change productImage

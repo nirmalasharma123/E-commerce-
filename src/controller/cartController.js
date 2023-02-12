@@ -50,6 +50,8 @@ const creatCart = async function (req, res) {
 
 const updateCart = async function (req, res) {
 
+  try{
+
   let userId = req.params.userId;
   let data = req.body;
   if (!validator.isMongoId(userId)) return res.status(400).send({ status: false, message: "please provide valid user id" })
@@ -85,7 +87,7 @@ const updateCart = async function (req, res) {
         findCart.totalItems-=1;
         findCart.items.splice(i,1);
         let updateNewcart= await cartModel.findOneAndUpdate({_id:data.cartId},findCart,{new:true})
-        return res.status(200).send({status:false,message:"cartt updated sucessfully",data:updateNewcart})
+        return res.status(200).send({status:true,message:"cartt updated sucessfully",data:updateNewcart})
       }
     }
 }
@@ -99,8 +101,11 @@ for(let i=0;i<findCart.items.length;i++){
 }
   
     let updateNewcart = await cartModel.findOneAndUpdate({ _id: data.cartId }, findCart, { new: true })
-    return res.status(200).send({ status: false, message: "cart updated sucessfully", data: updateNewcart })
+    return res.status(200).send({ status: true, message: "cart updated sucessfully", data: updateNewcart })
   }
+}catch(error){
+  return res.status(500).send({status:false,message:error.message})
+}
 }
 
 const getCart = async function (req, res) {
@@ -114,7 +119,7 @@ const getCart = async function (req, res) {
     let findCart = await cartModel.findOne({ userId: userId });
     if (!findCart) return res.status(404).send({ status: false, message: "cart not found" });
 
-    return res.status(200).send({ status: false, message: "cart data", data: findCart })
+    return res.status(200).send({ status: true, message: "cart data", data: findCart })
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message })
   }

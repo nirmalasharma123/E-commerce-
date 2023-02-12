@@ -9,7 +9,8 @@ mongoose.set("strictQuery", true);
 app.use(express.json());
 app.use("/", route);
 
-mongoose.connect("mongodb+srv://piyushtale:piyushrajutale@cluster0.t7w7ipr.mongodb.net/ProductManagement")
+mongoose.connect("mongodb+srv://piyushtale:piyushrajutale@cluster0.t7w7ipr.mongodb.net/ProductManagement",{
+    useNewUrlParser:true})
     .then(() => console.log("Mongodb is connected."))
     .catch((err) => console.log(err));
 
